@@ -5,24 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hama Borneo — Dziennik Odczytów</title>
     <style>
-        body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; background: #f7f9fa; color: #333; }
-        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); margin-bottom: 2rem; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; }
-        label { display: block; font-weight: bold; margin-bottom: 0.25rem; font-size: 0.9rem; }
-        input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { margin-top: 1rem; padding: 0.7rem 1.5rem; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: bold; }
-        button:hover { background: #0052a3; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { text-align: left; padding: 0.6rem; border-bottom: 1px solid #eee; }
-        th { background: #fafafa; }
+        body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 1.5rem auto; padding: 0 1rem; background: #f8fafc; color: #1e293b; }
+        .card { background: white; padding: 1.25rem; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; }
+        label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; }
+        input { width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        button { margin-top: 1rem; padding: 0.6rem 1.2rem; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        button:hover { background: #1d4ed8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+        th, td { text-align: left; padding: 0.65rem 0.5rem; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem; }
+        th { background: #f1f5f9; color: #475569; font-weight: 600; }
+        
+        /* Kompaktowa odznaka pogodowa */
+        .weather-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #f1f5f9;
+            padding: 0.25rem 0.55rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            border: 1px solid #e2e8f0;
+        }
+        .delta-badge {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #0369a1;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Odczyty: Hama Borneo</h1>
+    <h2>Hama Borneo — Rejestr Parametrów</h2>
 
     <div class="card">
-        <h2>Wprowadź nowy pomiar</h2>
         <form action="/add" method="post">
             <div class="grid">
                 <div>
@@ -43,25 +59,45 @@
     </div>
 
     <div class="card">
-        <h2>Ostatnie pomiary</h2>
+        <h3>Historia pomiarów</h3>
         <table>
             <thead>
                 <tr>
-                    <th>Data i godzina</th>
-                    <th>Temperatura</th>
-                    <th>Wilgotność</th>
+                    <th>Czas</th>
+                    <th>Pokój</th>
+                    <th>Na zewnątrz</th>
+                    <th>ΔT (Pokój - Zewn.)</th>
                 </tr>
             </thead>
             <tbody>
                 {% for r in readings %}
                 <tr>
-                    <td>{{ r.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-                    <td><strong>{{ r.temperature }}°C</strong></td>
-                    <td>{{ r.humidity }}%</td>
+                    <td style="color: #64748b; font-size: 0.85rem;">{{ r.timestamp.strftime('%d.%m %H:%M') }}</td>
+                    <td><strong>{{ r.temperature }}°C</strong> <span style="color: #64748b;">({{ r.humidity }}%)</span></td>
+                    <td>
+                        {% if r.outdoor_temperature is not none %}
+                            <div class="weather-badge">
+                                <span>{{ r.icon }}</span>
+                                <strong>{{ r.outdoor_temperature }}°C</strong>
+                                <span style="color: #64748b;">{{ r.outdoor_humidity }}%</span>
+                            </div>
+                        {% else %}
+                            <span style="color: #94a3b8; font-size: 0.85rem;">Brak danych</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if r.delta_temp is not none %}
+                            <span class="delta-badge">
+                                {% if r.delta_temp > 0 %}+{% endif %}{{ r.delta_temp }}°C
+                            </span>
+                        {% else %}
+                            <span style="color: #94a3b8;">—</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="3" style="text-align: center; color: #888;">Brak zapisanych pomiarów.</td>
+                    <td colspan="4" style="text-align: center; color: #94a3b8;">Brak zapisanych pomiarów.</td>
                 </tr>
                 {% endfor %}
             </tbody>
