@@ -5,18 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hama Borneo — Dziennik Odczytów</title>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 1.5rem auto; padding: 0 1rem; background: #f8fafc; color: #1e293b; }
+        body { font-family: system-ui, -apple-system, sans-serif; max-width: 860px; margin: 1.5rem auto; padding: 0 1rem; background: #f8fafc; color: #1e293b; }
         .card { background: white; padding: 1.25rem; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; }
         label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; }
         input { width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-        button { margin-top: 1rem; padding: 0.6rem 1.2rem; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        button:hover { background: #1d4ed8; }
+        button.btn-submit { margin-top: 1rem; padding: 0.6rem 1.2rem; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        button.btn-submit:hover { background: #1d4ed8; }
         table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-        th, td { text-align: left; padding: 0.65rem 0.5rem; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem; }
+        th, td { text-align: left; padding: 0.65rem 0.5rem; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem; vertical-align: middle; }
         th { background: #f1f5f9; color: #475569; font-weight: 600; }
         
-        /* Kompaktowa odznaka pogodowa */
         .weather-badge {
             display: inline-flex;
             align-items: center;
@@ -31,6 +30,42 @@
             font-size: 0.85rem;
             font-weight: 600;
             color: #0369a1;
+        }
+        .sub-metric {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+        .status-badge {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            margin-left: 0.4rem;
+        }
+        .status-drying {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+        .status-humidifying {
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fde68a;
+        }
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+        .btn-delete:hover {
+            color: #ef4444;
+            background: #fee2e2;
         }
     </style>
 </head>
@@ -54,7 +89,7 @@
                     <input type="datetime-local" id="reading_time" name="reading_time" value="{{ now }}">
                 </div>
             </div>
-            <button type="submit">Zapisz odczyt</button>
+            <button type="submit" class="btn-submit">Zapisz odczyt</button>
         </form>
     </div>
 
@@ -67,13 +102,19 @@
                     <th>Pokój</th>
                     <th>Na zewnątrz</th>
                     <th>ΔT (Pokój - Zewn.)</th>
+                    <th style="width: 30px;"></th>
                 </tr>
             </thead>
             <tbody>
                 {% for r in readings %}
                 <tr>
                     <td style="color: #64748b; font-size: 0.85rem;">{{ r.timestamp.strftime('%d.%m %H:%M') }}</td>
-                    <td><strong>{{ r.temperature }}°C</strong> <span style="color: #64748b;">({{ r.humidity }}%)</span></td>
+                    <td>
+                        <strong>{{ r.temperature }}°C</strong> <span style="color: #64748b;">({{ r.humidity }}%)</span>
+                        {% if r.indoor_ah is not none %}
+                            <div class="sub-metric">{{ r.indoor_ah }} g/m³</div>
+                        {% endif %}
+                    </td>
                     <td>
                         {% if r.outdoor_temperature is not none %}
                             <div class="weather-badge">
@@ -81,6 +122,9 @@
                                 <strong>{{ r.outdoor_temperature }}°C</strong>
                                 <span style="color: #64748b;">{{ r.outdoor_humidity }}%</span>
                             </div>
+                            {% if r.outdoor_ah is not none %}
+                                <div class="sub-metric">{{ r.outdoor_ah }} g/m³</div>
+                            {% endif %}
                         {% else %}
                             <span style="color: #94a3b8; font-size: 0.85rem;">Brak danych</span>
                         {% endif %}
@@ -93,11 +137,22 @@
                         {% else %}
                             <span style="color: #94a3b8;">—</span>
                         {% endif %}
+
+                        {% if r.vent_status == 'drying' %}
+                            <span class="status-badge status-drying">Osusza</span>
+                        {% elif r.vent_status == 'humidifying' %}
+                            <span class="status-badge status-humidifying">Nawilża</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <form action="/delete/{{ r.id }}" method="post" style="display: inline;" onsubmit="return confirm('Usunąć odczyt?');">
+                            <button type="submit" class="btn-delete" title="Usuń odczyt">✕</button>
+                        </form>
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="4" style="text-align: center; color: #94a3b8;">Brak zapisanych pomiarów.</td>
+                    <td colspan="5" style="text-align: center; color: #94a3b8;">Brak zapisanych pomiarów.</td>
                 </tr>
                 {% endfor %}
             </tbody>

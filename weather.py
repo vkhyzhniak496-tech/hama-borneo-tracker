@@ -3,6 +3,8 @@ import logging
 from typing import Optional, Tuple
 import urllib.error
 import urllib.request
+import math
+
 import ssl
 # Konfiguracja loggera
 logger = logging.getLogger("weather_service")
@@ -71,3 +73,17 @@ def get_weather_icon(code: Optional[int]) -> str:
     if code in (95, 96, 99):
         return "⛈️"  # Burza
     return "🌡️"
+
+
+
+def calculate_absolute_humidity(temp_c: Optional[float], rh_percent: Optional[float]) -> Optional[float]:
+    """Zwraca wilgotność bezwzględną w g/m³ lub None przy braku danych."""
+    if temp_c is None or rh_percent is None:
+        return None
+    # Ciśnienie pary nasyconej (hPa)
+    p_sat = 6.1078 * (10.0 ** ((7.5 * temp_c) / (237.3 + temp_c)))
+    # Rzeczywiste ciśnienie cząstkowe pary (hPa)
+    p_act = p_sat * (rh_percent / 100.0)
+    # Wilgotność bezwzględna AH w g/m³
+    ah = (p_act * 100.0) / (461.5 * (temp_c + 273.15)) * 1000.0
+    return round(ah, 2)

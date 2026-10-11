@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from database import Reading, get_db
 import schemas
-from weather import get_current_outdoor_weather, get_weather_icon
+from weather import get_current_outdoor_weather, get_weather_icon, calculate_absolute_humidity
 
 app = FastAPI(title="Hama Borneo Logger API", version="1.1.0")
 templates = Jinja2Templates(directory="templates")
@@ -20,17 +20,28 @@ def index(request: Request, db: Session = Depends(get_db)):
         db.query(Reading).order_by(Reading.timestamp.desc()).limit(50).all()
     )
 
-    # Przygotowujemy dane wzbogacone o ikony
     readings_view = []
     for r in readings:
+        indoor_ah = calculate_absolute_humidity(r.temperature, r.humidity)
+        outdoor_ah = calculate_absolute_humidity(r.outdoor_temperature, r.outdoor_humidity)
+
+        # Bilans: czy powietrze z zewnątrz jest fizycznie suchsze niż w pokoju?
+        vent_status = None
+        if indoor_ah is not None and outdoor_ah is not None:
+            # outdoor_ah < indoor_ah -> wietrzenie usuwa wodę z pokoju
+            vent_status = "drying" if outdoor_ah < indoor_ah else "humidifying"
+
         readings_view.append(
             {
                 "id": r.id,
                 "timestamp": r.timestamp,
                 "temperature": r.temperature,
                 "humidity": r.humidity,
+                "indoor_ah": indoor_ah,
                 "outdoor_temperature": r.outdoor_temperature,
                 "outdoor_humidity": r.outdoor_humidity,
+                "outdoor_ah": outdoor_ah,
+                "vent_status": vent_status,
                 "icon": get_weather_icon(r.weather_code),
                 "delta_temp": (
                     round(r.temperature - r.outdoor_temperature, 1)
@@ -122,6 +133,13 @@ def get_readings(
         .all()
     )
 
+@app.post("/delete/{reading_id}", include_in_schema=False)
+def delete_reading(reading_id: int, db: Session = Depends(get_db)):
+    reading = db.query(Reading).filter(Reading.id == reading_id).first()
+    if reading:
+        db.delete(reading)
+        db.commit()
+    return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
 
 if __name__ == "__main__":
     import uvicorn
