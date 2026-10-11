@@ -13,6 +13,13 @@ from weather import get_current_outdoor_weather, get_weather_icon, calculate_abs
 app = FastAPI(title="Hama Borneo Logger API", version="1.1.0")
 templates = Jinja2Templates(directory="templates")
 
+# Słownik ikon do widoku
+WINDOW_ICONS = {
+    "closed": "🪟⏹",
+    "micro": "🪟≈",
+    "tilt": "🪟◺",
+    "open": "🪟◽",
+}
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def index(request: Request, db: Session = Depends(get_db)):
@@ -25,10 +32,8 @@ def index(request: Request, db: Session = Depends(get_db)):
         indoor_ah = calculate_absolute_humidity(r.temperature, r.humidity)
         outdoor_ah = calculate_absolute_humidity(r.outdoor_temperature, r.outdoor_humidity)
 
-        # Bilans: czy powietrze z zewnątrz jest fizycznie suchsze niż w pokoju?
         vent_status = None
         if indoor_ah is not None and outdoor_ah is not None:
-            # outdoor_ah < indoor_ah -> wietrzenie usuwa wodę z pokoju
             vent_status = "drying" if outdoor_ah < indoor_ah else "humidifying"
 
         readings_view.append(
@@ -48,6 +53,10 @@ def index(request: Request, db: Session = Depends(get_db)):
                     if r.outdoor_temperature is not None
                     else None
                 ),
+                # Nowe pola:
+                "window_state": r.window_state or "micro",
+                "window_icon": WINDOW_ICONS.get(r.window_state, "🪟≈"),
+                "door_open": bool(r.door_open),
             }
         )
 
@@ -66,6 +75,8 @@ def form_add_reading(
     temperature: float = Form(...),
     humidity: float = Form(...),
     reading_time: Optional[str] = Form(None),
+    window_state: str = Form("micro"),
+    door_open: Optional[str] = Form(None),  # Checkbox w HTML wysyła "on" lub brak wartości
     db: Session = Depends(get_db),
 ):
     ts = (
@@ -75,6 +86,8 @@ def form_add_reading(
     )
     out_temp, out_hum, wcode = get_current_outdoor_weather()
 
+    is_door_open = door_open in ("on", "true", "1")
+
     entry = Reading(
         temperature=temperature,
         humidity=humidity,
@@ -82,13 +95,12 @@ def form_add_reading(
         outdoor_humidity=out_hum,
         weather_code=wcode,
         timestamp=ts,
+        window_state=window_state,
+        door_open=is_door_open,
     )
     db.add(entry)
     db.commit()
     return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
-
-
-# --- REST API ---
 
 
 @app.post(
@@ -110,12 +122,13 @@ def create_reading(
         outdoor_humidity=out_hum,
         weather_code=wcode,
         timestamp=ts,
+        window_state=payload.window_state,
+        door_open=payload.door_open,
     )
     db.add(entry)
     db.commit()
     db.refresh(entry)
     return entry
-
 
 @app.get(
     "/api/readings",

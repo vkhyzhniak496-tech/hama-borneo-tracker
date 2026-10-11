@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from sqlalchemy import Column, DateTime, Float, Integer, create_engine
+from sqlalchemy import Column, DateTime, Float, Integer, create_engine, String, Boolean
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 RESOURCES_DIR = Path(__file__).resolve().parent / "resources"
@@ -26,6 +26,10 @@ class Reading(Base):
     outdoor_humidity = Column(Float, nullable=True)
     weather_code = Column(Integer, nullable=True)
     timestamp = Column(DateTime, default=datetime.now)
+    # Nowe flagi:
+    window_state = Column(String(16), default="tilt", nullable=False)  # 'closed', 'micro', 'tilt', 'open'
+    door_open = Column(Boolean, default=False, nullable=False)          # True / False
+
 
 
 Base.metadata.create_all(bind=engine)

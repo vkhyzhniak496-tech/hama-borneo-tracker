@@ -9,7 +9,10 @@
         .card { background: white; padding: 1.25rem; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; }
         label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; }
-        input { width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        input, select { width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background: white; font-size: 0.9rem; }
+        .control-row { display: flex; gap: 1.5rem; align-items: center; margin-top: 0.85rem; }
+        .checkbox-container { display: flex; align-items: center; gap: 0.45rem; cursor: pointer; font-size: 0.9rem; font-weight: 500; }
+        .checkbox-container input { width: auto; margin: 0; cursor: pointer; }
         button.btn-submit { margin-top: 1rem; padding: 0.6rem 1.2rem; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
         button.btn-submit:hover { background: #1d4ed8; }
         table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
@@ -54,6 +57,14 @@
             color: #d97706;
             border: 1px solid #fde68a;
         }
+        .env-flags {
+            font-size: 0.78rem;
+            color: #475569;
+            margin-top: 3px;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
         .btn-delete {
             background: none;
             border: none;
@@ -89,6 +100,24 @@
                     <input type="datetime-local" id="reading_time" name="reading_time" value="{{ now }}">
                 </div>
             </div>
+
+            <div class="control-row">
+                <div style="flex: 0 1 200px;">
+                    <label for="window_state">Okno</label>
+                    <select id="window_state" name="window_state">
+                        <option value="micro" selected>Mikrowentylacja (≈)</option>
+                        <option value="open">Na oścież (◽)</option>
+                        <option value="tilt">Uchył (◺)</option>
+                        <option value="closed">Zamknięte (⏹)</option>
+                    </select>
+                </div>
+                <div style="margin-top: 1.1rem;">
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="door_open"> Drzwi otwarte (💨)
+                    </label>
+                </div>
+            </div>
+
             <button type="submit" class="btn-submit">Zapisz odczyt</button>
         </form>
     </div>
@@ -108,7 +137,15 @@
             <tbody>
                 {% for r in readings %}
                 <tr>
-                    <td style="color: #64748b; font-size: 0.85rem;">{{ r.timestamp.strftime('%d.%m %H:%M') }}</td>
+                    <td style="color: #64748b; font-size: 0.85rem;">
+                        <div>{{ r.timestamp.strftime('%d.%m %H:%M') }}</div>
+                        <div class="env-flags">
+                            <span title="Stan okna: {{ r.window_state }}">{{ r.window_icon }}</span>
+                            {% if r.door_open %}
+                                <span title="Drzwi otwarte">🚪💨</span>
+                            {% endif %}
+                        </div>
+                    </td>
                     <td>
                         <strong>{{ r.temperature }}°C</strong> <span style="color: #64748b;">({{ r.humidity }}%)</span>
                         {% if r.indoor_ah is not none %}

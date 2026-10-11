@@ -1,7 +1,8 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import BaseModel, Field
 
+WindowState = Literal["closed", "micro", "tilt", "open"]
 
 class ReadingCreate(BaseModel):
     temperature: float = Field(
@@ -21,6 +22,8 @@ class ReadingCreate(BaseModel):
     timestamp: Optional[datetime] = Field(
         default=None, description="Data i czas odczytu (opcjonalny)"
     )
+    window_state: WindowState = Field(default="micro", description="Stan okna: closed, micro, tilt, open")
+    door_open: bool = Field(default=False, description="Czy drzwi do pokoju są otwarte?")
 
 
 class ReadingResponse(ReadingCreate):
