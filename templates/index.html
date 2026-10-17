@@ -19,6 +19,38 @@
         th, td { text-align: left; padding: 0.65rem 0.5rem; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem; vertical-align: middle; }
         th { background: #f1f5f9; color: #475569; font-weight: 600; }
         
+        /* Banery ostrzegawcze */
+        .alert-box {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.9rem 1.1rem;
+            border-radius: 8px;
+            margin-bottom: 1.25rem;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .alert-warning {
+            background: #fff1f2;
+            color: #be123c;
+            border: 1px solid #fecdd3;
+        }
+        .alert-info {
+            background: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+        .alert-icon {
+            font-size: 1.35rem;
+            flex-shrink: 0;
+        }
+        .alert-content strong {
+            display: block;
+            margin-bottom: 0.15rem;
+            font-size: 0.92rem;
+        }
+
         .weather-badge {
             display: inline-flex;
             align-items: center;
@@ -83,6 +115,28 @@
 <body>
 
     <h2>Hama Borneo — Rejestr Parametrów</h2>
+
+    <!-- Dynamiczny boks ostrzegawczy / monitorujący -->
+    {% if readings and readings|length > 0 %}
+        {% set last = readings[0] %}
+        {% if last.temperature < 18.5 or (last.window_state in ['open', 'tilt'] and last.delta_temp and last.delta_temp > 12) %}
+            <div class="alert-box alert-warning">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                    <strong>UWAGA: Ryzyko wychłodzenia kubatury!</strong>
+                    Ostatni odczyt: <strong>{{ last.temperature }}°C</strong> (ΔT: +{{ last.delta_temp }}°C, tryb okna: {{ last.window_icon }}). Pilnuj temperatury i po zrzucie wilgoci przejdź na mikrowentylację (≈), aby nie dusić ciągu kominowego.
+                </div>
+            </div>
+        {% else %}
+            <div class="alert-box alert-info">
+                <div class="alert-icon">🛡️</div>
+                <div class="alert-content">
+                    <strong>Mikroklimat pod kontrolą</strong>
+                    Ostatni odczyt: <strong>{{ last.temperature }}°C</strong> | Wilgotność: <strong>{{ last.humidity }}%</strong> ({{ last.indoor_ah }} g/m³). Układ stabilny – weryfikuj odczyty po kąpieli lub dłuższym wietrzeniu.
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
 
     <div class="card">
         <form action="/add" method="post">
