@@ -5,60 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hama Borneo — Dziennik Odczytów</title>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; max-width: 860px; margin: 1.5rem auto; padding: 0 1rem; background: #f8fafc; color: #1e293b; }
-        .card { background: white; padding: 1.25rem; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        body { font-family: system-ui, -apple-system, sans-serif; max-width: 860px; margin: 1rem auto; padding: 0 0.85rem; background: #f8fafc; color: #1e293b; }
+        .card { background: white; padding: 1.1rem; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.25rem; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; }
         label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; }
-        input, select { width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background: white; font-size: 0.9rem; }
-        .control-row { display: flex; gap: 1.5rem; align-items: center; margin-top: 0.85rem; }
-        .checkbox-container { display: flex; align-items: center; gap: 0.45rem; cursor: pointer; font-size: 0.9rem; font-weight: 500; }
+        input, select { width: 100%; padding: 0.55rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background: white; font-size: 0.95rem; }
+        .control-row { display: flex; gap: 1.25rem; align-items: center; margin-top: 0.85rem; flex-wrap: wrap; }
+        .checkbox-container { display: flex; align-items: center; gap: 0.45rem; cursor: pointer; font-size: 0.95rem; font-weight: 500; }
         .checkbox-container input { width: auto; margin: 0; cursor: pointer; }
-        button.btn-submit { margin-top: 1rem; padding: 0.6rem 1.2rem; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        button.btn-submit { margin-top: 1rem; width: 100%; padding: 0.75rem 1.2rem; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 1rem; }
         button.btn-submit:hover { background: #1d4ed8; }
-        table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-        th, td { text-align: left; padding: 0.65rem 0.5rem; border-bottom: 1px solid #e2e8f0; font-size: 0.95rem; vertical-align: middle; }
-        th { background: #f1f5f9; color: #475569; font-weight: 600; }
         
-        /* Banery ostrzegawcze */
-        .alert-box {
+        /* Czerwone ostrzeżenie zoptymalizowane pod telefon */
+        .mobile-alert-warning {
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.9rem 1.1rem;
+            align-items: flex-start;
+            gap: 0.65rem;
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+            color: #991b1b;
+            padding: 0.75rem 0.9rem;
             border-radius: 8px;
-            margin-bottom: 1.25rem;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            margin-bottom: 1rem;
+            font-size: 0.88rem;
+            line-height: 1.35;
         }
-        .alert-warning {
-            background: #fff1f2;
-            color: #be123c;
-            border: 1px solid #fecdd3;
-        }
-        .alert-info {
-            background: #f0fdf4;
-            color: #15803d;
-            border: 1px solid #bbf7d0;
-        }
-        .alert-icon {
-            font-size: 1.35rem;
+        .mobile-alert-warning .icon {
+            font-size: 1.2rem;
+            line-height: 1;
             flex-shrink: 0;
+            margin-top: 1px;
         }
-        .alert-content strong {
+        .mobile-alert-warning strong {
             display: block;
-            margin-bottom: 0.15rem;
             font-size: 0.92rem;
+            color: #b91c1c;
+            margin-bottom: 2px;
         }
 
+        table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+        th, td { text-align: left; padding: 0.65rem 0.5rem; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; vertical-align: middle; }
+        th { background: #f1f5f9; color: #475569; font-weight: 600; }
+        
         .weather-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.35rem;
             background: #f1f5f9;
-            padding: 0.25rem 0.55rem;
+            padding: 0.2rem 0.45rem;
             border-radius: 6px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             border: 1px solid #e2e8f0;
         }
         .delta-badge {
@@ -67,7 +63,7 @@
             color: #0369a1;
         }
         .sub-metric {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: #94a3b8;
             margin-top: 2px;
         }
@@ -77,7 +73,7 @@
             font-weight: 600;
             padding: 0.15rem 0.45rem;
             border-radius: 4px;
-            margin-left: 0.4rem;
+            margin-left: 0.3rem;
         }
         .status-drying {
             background: #ecfdf5;
@@ -114,29 +110,16 @@
 </head>
 <body>
 
-    <h2>Hama Borneo — Rejestr Parametrów</h2>
+    <h2 style="font-size: 1.35rem; margin-bottom: 0.75rem;">Hama Borneo — Rejestr Parametrów</h2>
 
-    <!-- Dynamiczny boks ostrzegawczy / monitorujący -->
-    {% if readings and readings|length > 0 %}
-        {% set last = readings[0] %}
-        {% if last.temperature < 18.5 or (last.window_state in ['open', 'tilt'] and last.delta_temp and last.delta_temp > 12) %}
-            <div class="alert-box alert-warning">
-                <div class="alert-icon">⚠️</div>
-                <div class="alert-content">
-                    <strong>UWAGA: Ryzyko wychłodzenia kubatury!</strong>
-                    Ostatni odczyt: <strong>{{ last.temperature }}°C</strong> (ΔT: +{{ last.delta_temp }}°C, tryb okna: {{ last.window_icon }}). Pilnuj temperatury i po zrzucie wilgoci przejdź na mikrowentylację (≈), aby nie dusić ciągu kominowego.
-                </div>
-            </div>
-        {% else %}
-            <div class="alert-box alert-info">
-                <div class="alert-icon">🛡️</div>
-                <div class="alert-content">
-                    <strong>Mikroklimat pod kontrolą</strong>
-                    Ostatni odczyt: <strong>{{ last.temperature }}°C</strong> | Wilgotność: <strong>{{ last.humidity }}%</strong> ({{ last.indoor_ah }} g/m³). Układ stabilny – weryfikuj odczyty po kąpieli lub dłuższym wietrzeniu.
-                </div>
-            </div>
-        {% endif %}
-    {% endif %}
+    <!-- Stały czerwony alert mobilny -->
+    <div class="mobile-alert-warning">
+        <div class="icon">⚠️</div>
+        <div>
+            <strong>PAMIĘTAJ: Uchył (◺) jest nieefektywny!</strong>
+            Wychładza pokój i miesza zapachy zamiast je usuwać. Stosuj <strong>mikrowentylację (≈)</strong> do ciągłego osuszania lub <strong>oścież (◽)</strong> do szybkiego resetu.
+        </div>
+    </div>
 
     <div class="card">
         <form action="/add" method="post">
@@ -156,7 +139,7 @@
             </div>
 
             <div class="control-row">
-                <div style="flex: 0 1 200px;">
+                <div style="flex: 1 1 180px;">
                     <label for="window_state">Okno</label>
                     <select id="window_state" name="window_state">
                         <option value="micro" selected>Mikrowentylacja (≈)</option>
@@ -165,7 +148,7 @@
                         <option value="closed">Zamknięte (⏹)</option>
                     </select>
                 </div>
-                <div style="margin-top: 1.1rem;">
+                <div style="margin-top: 0.4rem;">
                     <label class="checkbox-container">
                         <input type="checkbox" name="door_open"> Drzwi otwarte (💨)
                     </label>
@@ -177,7 +160,7 @@
     </div>
 
     <div class="card">
-        <h3>Historia pomiarów</h3>
+        <h3 style="margin-top: 0; font-size: 1.1rem;">Historia pomiarów</h3>
         <table>
             <thead>
                 <tr>
