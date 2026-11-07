@@ -83,7 +83,7 @@ hama-borneo-tracker/
 
 ### 2. Setup
 ```bash
-git clone https://github.com/<your-username>/hama-borneo-tracker.git
+git clone https://github.com/vkhyzhniak496-tech/hama-borneo-tracker.git
 cd hama-borneo-tracker
 
 # Create and activate virtual environment
