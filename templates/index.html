@@ -4,115 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hama Borneo — Dziennik Odczytów</title>
-    <style>
-        body { font-family: system-ui, -apple-system, sans-serif; max-width: 860px; margin: 1rem auto; padding: 0 0.85rem; background: #f8fafc; color: #1e293b; }
-        .card { background: white; padding: 1.1rem; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.25rem; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; }
-        label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; }
-        input, select { width: 100%; padding: 0.55rem; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background: white; font-size: 0.95rem; }
-        .control-row { display: flex; gap: 1.25rem; align-items: center; margin-top: 0.85rem; flex-wrap: wrap; }
-        .checkbox-container { display: flex; align-items: center; gap: 0.45rem; cursor: pointer; font-size: 0.95rem; font-weight: 500; }
-        .checkbox-container input { width: auto; margin: 0; cursor: pointer; }
-        button.btn-submit { margin-top: 1rem; width: 100%; padding: 0.75rem 1.2rem; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 1rem; }
-        button.btn-submit:hover { background: #1d4ed8; }
-        
-        /* Czerwone ostrzeżenie zoptymalizowane pod telefon */
-        .mobile-alert-warning {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.65rem;
-            background: #fef2f2;
-            border: 2px solid #ef4444;
-            color: #991b1b;
-            padding: 0.75rem 0.9rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            font-size: 0.88rem;
-            line-height: 1.35;
-        }
-        .mobile-alert-warning .icon {
-            font-size: 1.2rem;
-            line-height: 1;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-        .mobile-alert-warning strong {
-            display: block;
-            font-size: 0.92rem;
-            color: #b91c1c;
-            margin-bottom: 2px;
-        }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
-        th, td { text-align: left; padding: 0.65rem 0.5rem; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; vertical-align: middle; }
-        th { background: #f1f5f9; color: #475569; font-weight: 600; }
-        
-        .weather-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            background: #f1f5f9;
-            padding: 0.2rem 0.45rem;
-            border-radius: 6px;
-            font-size: 0.82rem;
-            border: 1px solid #e2e8f0;
-        }
-        .delta-badge {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #0369a1;
-        }
-        .sub-metric {
-            font-size: 0.72rem;
-            color: #94a3b8;
-            margin-top: 2px;
-        }
-        .status-badge {
-            display: inline-block;
-            font-size: 0.72rem;
-            font-weight: 600;
-            padding: 0.15rem 0.45rem;
-            border-radius: 4px;
-            margin-left: 0.3rem;
-        }
-        .status-drying {
-            background: #ecfdf5;
-            color: #059669;
-            border: 1px solid #a7f3d0;
-        }
-        .status-humidifying {
-            background: #fffbeb;
-            color: #d97706;
-            border: 1px solid #fde68a;
-        }
-        .env-flags {
-            font-size: 0.78rem;
-            color: #475569;
-            margin-top: 3px;
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-        .btn-delete {
-            background: none;
-            border: none;
-            color: #cbd5e1;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-        }
-        .btn-delete:hover {
-            color: #ef4444;
-            background: #fee2e2;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
 </head>
 <body>
 
-    <h2 style="font-size: 1.35rem; margin-bottom: 0.75rem;">Hama Borneo — Rejestr Parametrów</h2>
+    <h2>Hama Borneo — Rejestr Parametrów</h2>
 
-
+    <!-- Karta dodawania pomiaru -->
     <div class="card">
         <form action="/add" method="post">
             <div class="grid">
@@ -131,7 +29,7 @@
             </div>
 
             <div class="control-row">
-                <div style="flex: 1 1 180px;">
+                <div class="control-item-select">
                     <label for="window_state">Okno</label>
                     <select id="window_state" name="window_state">
                         <option value="micro" selected>Mikrowentylacja (≈)</option>
@@ -140,9 +38,14 @@
                         <option value="closed">Zamknięte (⏹)</option>
                     </select>
                 </div>
-                <div style="margin-top: 0.4rem;">
+                <div class="control-item-checkbox">
                     <label class="checkbox-container">
                         <input type="checkbox" name="door_open"> Drzwi otwarte (💨)
+                    </label>
+                </div>
+                <div class="control-item-checkbox">
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="condensation"> Krople na szybie (💧)
                     </label>
                 </div>
             </div>
@@ -151,78 +54,84 @@
         </form>
     </div>
 
+    <!-- Karta historii -->
     <div class="card">
-        <h3 style="margin-top: 0; font-size: 1.1rem;">Historia pomiarów</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Czas</th>
-                    <th>Pokój</th>
-                    <th>Na zewnątrz</th>
-                    <th>ΔT (Pokój - Zewn.)</th>
-                    <th style="width: 30px;"></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for r in readings %}
-                <tr>
-                    <td style="color: #64748b; font-size: 0.85rem;">
-                        <div>{{ r.timestamp.strftime('%d.%m %H:%M') }}</div>
-                        <div class="env-flags">
-                            <span title="Stan okna: {{ r.window_state }}">{{ r.window_icon }}</span>
-                            {% if r.door_open %}
-                                <span title="Drzwi otwarte">🚪💨</span>
-                            {% endif %}
-                        </div>
-                    </td>
-                    <td>
-                        <strong>{{ r.temperature }}°C</strong> <span style="color: #64748b;">({{ r.humidity }}%)</span>
-                        {% if r.indoor_ah is not none %}
-                            <div class="sub-metric">{{ r.indoor_ah }} g/m³</div>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if r.outdoor_temperature is not none %}
-                            <div class="weather-badge">
-                                <span>{{ r.icon }}</span>
-                                <strong>{{ r.outdoor_temperature }}°C</strong>
-                                <span style="color: #64748b;">{{ r.outdoor_humidity }}%</span>
+        <h3 class="card-title">Historia pomiarów</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Czas</th>
+                        <th>Pokój</th>
+                        <th>Na zewnątrz</th>
+                        <th>ΔT (Pokój - Zewn.)</th>
+                        <th class="col-actions"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in readings %}
+                    <tr>
+                        <td class="text-muted">
+                            <div>{{ r.timestamp.strftime('%d.%m %H:%M') }}</div>
+                            <div class="env-flags">
+                                <span title="Stan okna: {{ r.window_state }}">{{ r.window_icon }}</span>
+                                {% if r.door_open %}
+                                    <span title="Drzwi otwarte">🚪💨</span>
+                                {% endif %}
+                                {% if r.condensation %}
+                                    <span title="Kondensacja na szybie">💧</span>
+                                {% endif %}
                             </div>
-                            {% if r.outdoor_ah is not none %}
-                                <div class="sub-metric">{{ r.outdoor_ah }} g/m³</div>
+                        </td>
+                        <td>
+                            <strong>{{ r.temperature }}°C</strong> <span class="text-muted">({{ r.humidity }}%)</span>
+                            {% if r.indoor_ah is not none %}
+                                <div class="sub-metric">{{ r.indoor_ah }} g/m³</div>
                             {% endif %}
-                        {% else %}
-                            <span style="color: #94a3b8; font-size: 0.85rem;">Brak danych</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if r.delta_temp is not none %}
-                            <span class="delta-badge">
-                                {% if r.delta_temp > 0 %}+{% endif %}{{ r.delta_temp }}°C
-                            </span>
-                        {% else %}
-                            <span style="color: #94a3b8;">—</span>
-                        {% endif %}
+                        </td>
+                        <td>
+                            {% if r.outdoor_temperature is not none %}
+                                <div class="weather-badge">
+                                    <span>{{ r.icon }}</span>
+                                    <strong>{{ r.outdoor_temperature }}°C</strong>
+                                    <span class="text-muted">{{ r.outdoor_humidity }}%</span>
+                                </div>
+                                {% if r.outdoor_ah is not none %}
+                                    <div class="sub-metric">{{ r.outdoor_ah }} g/m³</div>
+                                {% endif %}
+                            {% else %}
+                                <span class="sub-metric">Brak danych</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if r.delta_temp is not none %}
+                                <span class="delta-badge">
+                                    {% if r.delta_temp > 0 %}+{% endif %}{{ r.delta_temp }}°C
+                                </span>
+                            {% else %}
+                                <span class="sub-metric">—</span>
+                            {% endif %}
 
-                        {% if r.vent_status == 'drying' %}
-                            <span class="status-badge status-drying">Osusza</span>
-                        {% elif r.vent_status == 'humidifying' %}
-                            <span class="status-badge status-humidifying">Nawilża</span>
-                        {% endif %}
-                    </td>
-                    <td style="text-align: right;">
-                        <form action="/delete/{{ r.id }}" method="post" style="display: inline;" onsubmit="return confirm('Usunąć odczyt?');">
-                            <button type="submit" class="btn-delete" title="Usuń odczyt">✕</button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5" style="text-align: center; color: #94a3b8;">Brak zapisanych pomiarów.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            {% if r.vent_status == 'drying' %}
+                                <span class="status-badge status-drying">Osusza</span>
+                            {% elif r.vent_status == 'humidifying' %}
+                                <span class="status-badge status-humidifying">Nawilża</span>
+                            {% endif %}
+                        </td>
+                        <td class="col-actions">
+                            <form action="/delete/{{ r.id }}" method="post" style="display: inline;" onsubmit="return confirm('Usunąć odczyt?');">
+                                <button type="submit" class="btn-delete" title="Usuń odczyt">✕</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #94a3b8;">Brak zapisanych pomiarów.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
 </body>

@@ -24,6 +24,7 @@ class ReadingCreate(BaseModel):
     )
     window_state: WindowState = Field(default="micro", description="Stan okna: closed, micro, tilt, open")
     door_open: bool = Field(default=False, description="Czy drzwi do pokoju są otwarte?")
+    condensation: bool = Field(default=False, description="Czy występuje kondensacja na szybie?")
 
 
 class ReadingResponse(ReadingCreate):

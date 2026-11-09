@@ -5,21 +5,62 @@ from fastapi import Depends, FastAPI, Form, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from fastapi.staticfiles import StaticFiles
+
 
 from database import Reading, get_db
 import schemas
-from weather import get_current_outdoor_weather, get_weather_icon, calculate_absolute_humidity
+from weather import (
+    calculate_absolute_humidity,
+    get_current_outdoor_weather,
+    get_weather_icon,
+)
 
-app = FastAPI(title="Hama Borneo Logger API", version="1.1.0")
+app = FastAPI(title="Hama Borneo Logger API", version="1.2.28")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-
-# Słownik ikon do widoku
 WINDOW_ICONS = {
     "closed": "🪟⏹",
     "micro": "🪟≈",
     "tilt": "🪟◺",
     "open": "🪟◽",
 }
+
+
+def _record_reading(
+    db: Session,
+    temperature: float,
+    humidity: float,
+    timestamp: Optional[datetime],
+    window_state: str,
+    door_open: bool,
+    condensation: bool,
+) -> Reading:
+    """Wspólna funkcja pomocnicza: pobiera pogodę i zapisuje odczyt w bazie."""
+    ts = timestamp or datetime.now()
+    out_temp, out_hum, wcode = get_current_outdoor_weather()
+
+    entry = Reading(
+        temperature=temperature,
+        humidity=humidity,
+        outdoor_temperature=out_temp,
+        outdoor_humidity=out_hum,
+        weather_code=wcode,
+        timestamp=ts,
+        window_state=window_state,
+        door_open=door_open,
+        condensation=condensation,
+    )
+    db.add(entry)
+    db.commit()
+    db.refresh(entry)
+    return entry
+
+
+# ==========================================
+# 1. WIDOKI HTML
+# ==========================================
+
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def index(request: Request, db: Session = Depends(get_db)):
@@ -30,7 +71,9 @@ def index(request: Request, db: Session = Depends(get_db)):
     readings_view = []
     for r in readings:
         indoor_ah = calculate_absolute_humidity(r.temperature, r.humidity)
-        outdoor_ah = calculate_absolute_humidity(r.outdoor_temperature, r.outdoor_humidity)
+        outdoor_ah = calculate_absolute_humidity(
+            r.outdoor_temperature, r.outdoor_humidity
+        )
 
         vent_status = None
         if indoor_ah is not None and outdoor_ah is not None:
@@ -53,10 +96,10 @@ def index(request: Request, db: Session = Depends(get_db)):
                     if r.outdoor_temperature is not None
                     else None
                 ),
-                # Nowe pola:
                 "window_state": r.window_state or "micro",
                 "window_icon": WINDOW_ICONS.get(r.window_state, "🪟≈"),
                 "door_open": bool(r.door_open),
+                "condensation": bool(r.condensation),
             }
         )
 
@@ -76,31 +119,35 @@ def form_add_reading(
     humidity: float = Form(...),
     reading_time: Optional[str] = Form(None),
     window_state: str = Form("micro"),
-    door_open: Optional[str] = Form(None),  # Checkbox w HTML wysyła "on" lub brak wartości
+    door_open: Optional[str] = Form(None),
+    condensation: Optional[str] = Form(None),
     db: Session = Depends(get_db),
 ):
-    ts = (
-        datetime.fromisoformat(reading_time)
-        if reading_time
-        else datetime.now()
-    )
-    out_temp, out_hum, wcode = get_current_outdoor_weather()
-
-    is_door_open = door_open in ("on", "true", "1")
-
-    entry = Reading(
+    ts = datetime.fromisoformat(reading_time) if reading_time else None
+    _record_reading(
+        db=db,
         temperature=temperature,
         humidity=humidity,
-        outdoor_temperature=out_temp,
-        outdoor_humidity=out_hum,
-        weather_code=wcode,
         timestamp=ts,
         window_state=window_state,
-        door_open=is_door_open,
+        door_open=(door_open in ("on", "true", "1")),
+        condensation=(condensation in ("on", "true", "1")),
     )
-    db.add(entry)
-    db.commit()
     return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@app.post("/delete/{reading_id}", include_in_schema=False)
+def delete_reading_form(reading_id: int, db: Session = Depends(get_db)):
+    reading = db.query(Reading).filter(Reading.id == reading_id).first()
+    if reading:
+        db.delete(reading)
+        db.commit()
+    return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ==========================================
+# 2.REST API
+# ==========================================
 
 
 @app.post(
@@ -112,23 +159,16 @@ def form_add_reading(
 def create_reading(
     payload: schemas.ReadingCreate, db: Session = Depends(get_db)
 ):
-    ts = payload.timestamp or datetime.now()
-    out_temp, out_hum, wcode = get_current_outdoor_weather()
-
-    entry = Reading(
+    return _record_reading(
+        db=db,
         temperature=payload.temperature,
         humidity=payload.humidity,
-        outdoor_temperature=out_temp,
-        outdoor_humidity=out_hum,
-        weather_code=wcode,
-        timestamp=ts,
+        timestamp=payload.timestamp,
         window_state=payload.window_state,
         door_open=payload.door_open,
+        condensation=payload.condensation,
     )
-    db.add(entry)
-    db.commit()
-    db.refresh(entry)
-    return entry
+
 
 @app.get(
     "/api/readings",
@@ -146,13 +186,6 @@ def get_readings(
         .all()
     )
 
-@app.post("/delete/{reading_id}", include_in_schema=False)
-def delete_reading(reading_id: int, db: Session = Depends(get_db)):
-    reading = db.query(Reading).filter(Reading.id == reading_id).first()
-    if reading:
-        db.delete(reading)
-        db.commit()
-    return RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
 
 if __name__ == "__main__":
     import uvicorn

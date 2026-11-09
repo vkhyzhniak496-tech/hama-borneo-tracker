@@ -87,3 +87,11 @@ def calculate_absolute_humidity(temp_c: Optional[float], rh_percent: Optional[fl
     # Wilgotność bezwzględna AH w g/m³
     ah = (p_act * 100.0) / (461.5 * (temp_c + 273.15)) * 1000.0
     return round(ah, 2)
+
+
+def calculate_dew_point(temperature: float, humidity: float) -> float:
+    """Oblicza temperaturę punktu rosy (°C)."""
+    a = 17.27
+    b = 237.7
+    alpha = ((a * temperature) / (b + temperature)) + math.log(humidity / 100.0)
+    return round((b * alpha) / (a - alpha), 1)

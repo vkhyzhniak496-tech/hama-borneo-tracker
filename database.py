@@ -29,7 +29,7 @@ class Reading(Base):
     # Nowe flagi:
     window_state = Column(String(16), default="tilt", nullable=False)  # 'closed', 'micro', 'tilt', 'open'
     door_open = Column(Boolean, default=False, nullable=False)          # True / False
-
+    condensation = Column(Boolean, default=False, nullable=False)  # True jeśli widać krople
 
 
 Base.metadata.create_all(bind=engine)
